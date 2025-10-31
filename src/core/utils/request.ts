@@ -1,4 +1,4 @@
-import request from 'request-promise';
+import axios, { type AxiosRequestConfig, type AxiosResponse } from 'axios';
 import { waitFor } from './timeout.js';
 
 // In seconds
@@ -6,15 +6,13 @@ const MAX_RETRY_TIMEOUT = 15;
 // Step in seconds
 const RETRY_STEP = 5;
 
-type RequestArgs = Parameters<typeof request>;
-
-export function requestWithRetry(...args: RequestArgs): Promise<any> {
-  return retry(0, ...args);
+export function requestWithRetry(config: AxiosRequestConfig): Promise<AxiosResponse> {
+  return retry(0, config);
 }
 
-async function retry(retryCount = 0, ...args: RequestArgs): Promise<any> {
+async function retry(retryCount = 0, config: AxiosRequestConfig): Promise<AxiosResponse> {
   try {
-    const result = await request(...args);
+    const result = await axios(config);
 
     return result;
   } catch (e) {
@@ -25,7 +23,7 @@ async function retry(retryCount = 0, ...args: RequestArgs): Promise<any> {
 
     await waitFor(timeout * 1000);
 
-    const result = await retry(retryCount + 1, ...args);
+    const result = await retry(retryCount + 1, config);
 
     return result;
   }
